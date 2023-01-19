@@ -1,0 +1,1176 @@
+{
+	"name": "PL_LOAD_GSAP_MVMT_QTY_PINEAPPLE_ENUNHARM_TO_CURATED",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetJobMetadata",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "GetPipelineParameters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select \t DISTINCT \n\tjob_id,\n load_type,\ndata_set_name,\n\tsource_system,\n\tadb_ws_url,\n\takv_secret_name,\n\tadb_cluster_id,\n\tnotebook_path,\n\tsource_mount_point,\n\ttarget_mount_point,\n\ttarget_path,\n\tsource_layer,\n\ttarget_layer,\n\tcompany_code,\n\tCONVERT(VARCHAR,last_dtm_column_value,20)\tas\tlast_dtm_column_value,\n\tdtm_column_name,\n\tnewid()\tguid,\n\t(select\ttarget_path\tas\tsource_path,data_set_name\tfrom\t[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[@{activity('GetPipelineParameters').output.firstRow.Job_Control_TC_SQLTableName}]\tgtc2\t\n\t\twhere\t\n\t\tgtc1.source_system=gtc2.source_system\n\t\tand\tgtc1.job_id='@{activity('GetPipelineParameters').output.firstRow.Pineapple_MVMT_QTY_JobId}'\n\t\tand\tgtc2.job_id='@{activity('GetPipelineParameters').output.firstRow.Raw_To_Enr_Unharm_JobId}'\t\n\tand\tdata_set_name\tin\t('MSEGO2','MSEG')\n\t\tand\tgtc2.source_layer='RAW'\n\t\tand\tgtc1.is_active='ACTIVE'\t\n\t\tand\tgtc2.is_active='ACTIVE'\tFOR\tJSON\tAUTO)\tas\tdata_set_paths\t\n\tfrom\t[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[@{activity('GetPipelineParameters').output.firstRow.Job_Control_TC_SQLTableName}]\tgtc1\t\n\t\twhere\tis_active='ACTIVE'\t\n\t\tand\tjob_id='@{activity('GetPipelineParameters').output.firstRow.Pineapple_MVMT_QTY_JobId}'\t\n\t\t@{if(and(not(empty(pipeline().parameters.Pineapple_MVMT_QTY_MSEG_Company_Code)),equals(pipeline().parameters.Pineapple_MVMT_QTY_Use_Pipeline_Param,'Y')),concat('\tand\tcompany_code=''',pipeline().parameters.Pineapple_MVMT_QTY_MSEG_Company_Code,''''),'')}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_MSSQL_NextGen_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"DS_SQLServerName": {
+								"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+								"type": "Expression"
+							},
+							"DS_SQLDBName": {
+								"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+								"type": "Expression"
+							},
+							"DS_SQLUserName": {
+								"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+								"type": "Expression"
+							},
+							"DS_SQLUserSecretName": {
+								"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "FinsihPipelineAsSuccess",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEachConfig",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[insert_pipeline_exec_info]",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"p_pipeilne_trigger_name": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_adf": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_exec_status": {
+							"value": {
+								"value": "Success",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_end_time": {
+							"value": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_id": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_time": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_type": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_MSSQL_NextGen_Parameterized",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"LS_SQLServerName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+							"type": "Expression"
+						},
+						"LS_SQLDBName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+							"type": "Expression"
+						},
+						"LS_SQLUserName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+							"type": "Expression"
+						},
+						"LS_SQLUserSecretName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "FinsihPipelineAsFail2",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEachConfig",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[insert_pipeline_exec_info]",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"p_pipeilne_trigger_name": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_adf": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_exec_status": {
+							"value": {
+								"value": "Fail",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_end_time": {
+							"value": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_id": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_time": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_type": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_MSSQL_NextGen_Parameterized",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"LS_SQLServerName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+							"type": "Expression"
+						},
+						"LS_SQLDBName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+							"type": "Expression"
+						},
+						"LS_SQLUserName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+							"type": "Expression"
+						},
+						"LS_SQLUserSecretName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ForEachConfig",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetJobMetadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetJobMetadata').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "JoinDataWriteToCurated",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 180,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "@item().notebook_path",
+									"type": "Expression"
+								},
+								"baseParameters": {
+									"data_set_paths": {
+										"value": "@item().data_set_paths",
+										"type": "Expression"
+									},
+									"source_mount_point": {
+										"value": "@item().source_mount_point",
+										"type": "Expression"
+									},
+									"target_mount_point": {
+										"value": "@item().target_mount_point",
+										"type": "Expression"
+									},
+									"target_path": {
+										"value": "@item().target_path",
+										"type": "Expression"
+									},
+									"company_code": {
+										"value": "@item().company_code",
+										"type": "Expression"
+									},
+									"msego2_dtm_filter_column": {
+										"value": "@item().dtm_column_name",
+										"type": "Expression"
+									},
+									"msego2_start_date": {
+										"value": "@{if(equals(pipeline().parameters.Pineapple_MVMT_QTY_Use_Pipeline_Param,'Y'),pipeline().parameters.Pineapple_MVMT_QTY_MSEG02_Start_Date,item().last_dtm_column_value)}",
+										"type": "Expression"
+									},
+									"msego2_end_date": {
+										"value": "@{if(equals(pipeline().parameters.Pineapple_MVMT_QTY_Use_Pipeline_Param,'Y'),pipeline().parameters.Pineapple_MVMT_QTY_MSEG02_End_Date,'')}",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_ADB_NextGen_Parameterized",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"LS_ADB_WS_URL": {
+										"value": "@item().adb_ws_url",
+										"type": "Expression"
+									},
+									"LS_ADB_Secret_Name": {
+										"value": "@item().akv_secret_name",
+										"type": "Expression"
+									},
+									"LS_ADB_Cluster_Id": {
+										"value": "@item().adb_cluster_id",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "IfDataCopyToPineapple",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "JoinDataWriteToCurated",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@bool(activity('JoinDataWriteToCurated').output.runOutput.report_has_data)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "UpdateTrackingIfnoNoData",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[insert_pipeline_tracking]",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"p_additional_details": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.additional_details",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_company_code": {
+													"value": {
+														"value": "@item().company_code",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_created_time_stamp": {
+													"value": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_data_set_name": {
+													"value": {
+														"value": "@item().data_set_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_df_name": {
+													"value": {
+														"value": "@pipeline().DataFactory",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_end_time": {
+													"value": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_load_id": {
+													"value": {
+														"value": "@variables('load_guid')",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"p_load_status": {
+													"value": "Y",
+													"type": "String"
+												},
+												"p_load_type": {
+													"value": {
+														"value": "@item().load_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_pipeline_name": {
+													"value": {
+														"value": "@pipeline().Pipeline",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_pipeline_run_id": {
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_read_count": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.read_count",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"p_source_file_name": {
+													"value": null,
+													"type": "String"
+												},
+												"p_source_folder_path": {
+													"value": null,
+													"type": "String"
+												},
+												"p_source_layer": {
+													"value": {
+														"value": "@item().source_layer",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_source_system": {
+													"value": {
+														"value": "@item().source_system",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_start_time": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.start_time",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_target_file_name": {
+													"value": null,
+													"type": "String"
+												},
+												"p_target_folder_path": {
+													"value": {
+														"value": "@item().target_path",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_target_layer": {
+													"value": {
+														"value": "@item().target_layer",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_write_count": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.write_count",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_MSSQL_NextGen_Parameterized",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"LS_SQLServerName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+													"type": "Expression"
+												},
+												"LS_SQLDBName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+													"type": "Expression"
+												},
+												"LS_SQLUserName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+													"type": "Expression"
+												},
+												"LS_SQLUserSecretName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "UpdateHMWValue",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "CopyToPineapple",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}.update_transformation_hwm_value",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"p_company_code": {
+													"value": {
+														"value": "@item().company_code",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_data_set_name": {
+													"value": {
+														"value": "@item().data_set_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_job_id": {
+													"value": {
+														"value": "@{if(equals(pipeline().parameters.Pineapple_MVMT_QTY_Use_Pipeline_Param,'Y'),'',item().job_id)}",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_last_dtm_column_value": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.end_date",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_source_system": {
+													"value": {
+														"value": "@{if(equals(pipeline().parameters.Pineapple_MVMT_QTY_Use_Pipeline_Param,'Y'),'',item().source_system)}",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_MSSQL_NextGen_Parameterized",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"LS_SQLServerName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+													"type": "Expression"
+												},
+												"LS_SQLDBName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+													"type": "Expression"
+												},
+												"LS_SQLUserName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+													"type": "Expression"
+												},
+												"LS_SQLUserSecretName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "UpdateTrackingIfno",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "UpdateHMWValue",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[insert_pipeline_tracking]",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"p_additional_details": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.additional_details",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_company_code": {
+													"value": {
+														"value": "@item().company_code",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_created_time_stamp": {
+													"value": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_data_set_name": {
+													"value": {
+														"value": "@item().data_set_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_df_name": {
+													"value": {
+														"value": "@pipeline().DataFactory",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_end_time": {
+													"value": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_load_id": {
+													"value": {
+														"value": "@variables('load_guid')",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"p_load_status": {
+													"value": "Y",
+													"type": "String"
+												},
+												"p_load_type": {
+													"value": {
+														"value": "@item().load_type",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_pipeline_name": {
+													"value": {
+														"value": "@pipeline().Pipeline",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_pipeline_run_id": {
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_read_count": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.read_count",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												},
+												"p_source_file_name": {
+													"value": null,
+													"type": "String"
+												},
+												"p_source_folder_path": {
+													"value": null,
+													"type": "String"
+												},
+												"p_source_layer": {
+													"value": {
+														"value": "@item().source_layer",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_source_system": {
+													"value": {
+														"value": "@item().source_system",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_start_time": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.start_time",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"p_target_file_name": {
+													"value": {
+														"value": "@{item().guid}.parquet",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_target_folder_path": {
+													"value": {
+														"value": "@item().target_path",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_target_layer": {
+													"value": {
+														"value": "@item().target_layer",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"p_write_count": {
+													"value": {
+														"value": "@activity('JoinDataWriteToCurated').output.runOutput.write_count",
+														"type": "Expression"
+													},
+													"type": "Int64"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_MSSQL_NextGen_Parameterized",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"LS_SQLServerName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+													"type": "Expression"
+												},
+												"LS_SQLDBName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+													"type": "Expression"
+												},
+												"LS_SQLUserName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+													"type": "Expression"
+												},
+												"LS_SQLUserSecretName": {
+													"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "CopyToPineapple",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 180,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "ParquetSource",
+												"storeSettings": {
+													"type": "AzureDataLakeStoreReadSettings",
+													"recursive": false,
+													"wildcardFileName": "*.parquet"
+												}
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_ADLS_NEXTGEN_PARQUET_Parameterized",
+												"type": "DatasetReference",
+												"parameters": {
+													"LS_ADLSStore": {
+														"value": "@activity('GetPipelineParameters').output.firstRow.Nextgen_ADLSStore",
+														"type": "Expression"
+													},
+													"LS_AzureTenant": {
+														"value": "@activity('GetPipelineParameters').output.firstRow.Nextgen_AzureTenant",
+														"type": "Expression"
+													},
+													"LS_AzureSubscriptionID": {
+														"value": "@activity('GetPipelineParameters').output.firstRow.Nextgen_AzureSubscriptionID",
+														"type": "Expression"
+													},
+													"LS_ResourceGroup": {
+														"value": "@activity('GetPipelineParameters').output.firstRow.Nextgen_ResourceGroup",
+														"type": "Expression"
+													},
+													"DS_ADLS_Path": {
+														"value": "@item().target_path",
+														"type": "Expression"
+													},
+													"DS_ADLS_Filename": {
+														"value": "@concat('')",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_ADLSGEN2_NEXTGEN_PARQUET_Parameterized",
+												"type": "DatasetReference",
+												"parameters": {
+													"LS_ADLS2Url": {
+														"value": "@activity('GetPipelineParameters').output.firstRow.Pineapple_ADLS2Url",
+														"type": "Expression"
+													},
+													"DS_FileSystem": {
+														"value": "@if(equals(pipeline().parameters.Pineapple_MVMT_QTY_Is_Initial_Load,'Y'),concat(activity('GetPipelineParameters').output.firstRow.Pineapple_ADLS2_Path,'-',toLower(item().company_code),'/initial-load'),concat(activity('GetPipelineParameters').output.firstRow.Pineapple_ADLS2_Path,'-',toLower(item().company_code),'/year=',formatDateTime(convertTimeZone(utcnow(), 'UTC', 'E. Europe Standard Time'),'yyyy'),'/month=',formatDateTime(convertTimeZone(utcnow(), 'UTC', 'E. Europe Standard Time'),'MM'),'/day=',formatDateTime(convertTimeZone(utcnow(), 'UTC', 'E. Europe Standard Time'),'dd')))",
+														"type": "Expression"
+													},
+													"DS_Directory": {
+														"value": "@concat('')",
+														"type": "Expression"
+													},
+													"DS_Filename": {
+														"value": "@{item().guid}.parquet",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "GetPipelineParameters",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": {
+							"value": "@{pipeline().globalParameters.Global_CT_SQL_DB_Schema}.@{pipeline().globalParameters.Global_CT_SQL_SP_Get_ADF_Parameters}",
+							"type": "Expression"
+						},
+						"storedProcedureParameters": {
+							"adf_type": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.ADF_Type",
+									"type": "Expression"
+								}
+							},
+							"pipeline_name_or_alias": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.Pipeline_Name_Or_Alias",
+									"type": "Expression"
+								}
+							},
+							"use_case": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.UseCase",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_MSSQL_NextGen_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"DS_SQLServerName": {
+								"value": "@pipeline().globalParameters.Global_CT_SQL_Server_Name",
+								"type": "Expression"
+							},
+							"DS_SQLDBName": {
+								"value": "@pipeline().globalParameters.Global_CT_SQL_DB_Name",
+								"type": "Expression"
+							},
+							"DS_SQLUserName": {
+								"value": "@pipeline().globalParameters.Global_CT_SQL_User_Name",
+								"type": "Expression"
+							},
+							"DS_SQLUserSecretName": {
+								"value": "@pipeline().globalParameters.Global_CT_SQL_Secret_Name",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "FinsihPipelineAsFail1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "GetJobMetadata",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": {
+						"value": "[@{activity('GetPipelineParameters').output.firstRow.Job_Control_SQLSchemaName}].[insert_pipeline_exec_info]",
+						"type": "Expression"
+					},
+					"storedProcedureParameters": {
+						"p_pipeilne_trigger_name": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_adf": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_exec_status": {
+							"value": {
+								"value": "Fail",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_end_time": {
+							"value": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_id": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"p_pipeline_trigger_time": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"p_pipeline_trigger_type": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_MSSQL_NextGen_Parameterized",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"LS_SQLServerName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLServerName",
+							"type": "Expression"
+						},
+						"LS_SQLDBName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLDBName",
+							"type": "Expression"
+						},
+						"LS_SQLUserName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserName",
+							"type": "Expression"
+						},
+						"LS_SQLUserSecretName": {
+							"value": "@activity('GetPipelineParameters').output.firstRow.Job_Control_SQLUserSecretName",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"Pipeline_Name_Or_Alias": {
+				"type": "string",
+				"defaultValue": "PL_LOAD_GSAP_MVMT_QTY_PINEAPPLE_ENUNHARM_TO_CURATED"
+			},
+			"UseCase": {
+				"type": "string",
+				"defaultValue": "GSAP_HANA"
+			},
+			"ADF_Type": {
+				"type": "string",
+				"defaultValue": "TRANSFORM_ADF"
+			},
+			"Pineapple_MVMT_QTY_Use_Pipeline_Param": {
+				"type": "string",
+				"defaultValue": "N"
+			},
+			"Pineapple_MVMT_QTY_MSEG02_Start_Date": {
+				"type": "string"
+			},
+			"Pineapple_MVMT_QTY_MSEG02_End_Date": {
+				"type": "string"
+			},
+			"Pineapple_MVMT_QTY_MSEG_Company_Code": {
+				"type": "string"
+			},
+			"Pineapple_MVMT_QTY_Is_Initial_Load": {
+				"type": "string",
+				"defaultValue": "N"
+			}
+		},
+		"variables": {
+			"load_guid": {
+				"type": "String",
+				"defaultValue": "@{ticks(utcnow())}"
+			}
+		},
+		"folder": {
+			"name": "NEXTGEN_GSAP_FOLDER_CHANGES/PINEAPPLE"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-01-09T14:08:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
