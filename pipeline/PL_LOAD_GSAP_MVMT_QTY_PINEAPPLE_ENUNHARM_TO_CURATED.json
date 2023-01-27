@@ -284,6 +284,7 @@
 			},
 			{
 				"name": "ForEachConfig",
+				"description": "111",
 				"type": "ForEach",
 				"dependsOn": [
 					{
