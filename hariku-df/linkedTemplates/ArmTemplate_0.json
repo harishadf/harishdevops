@@ -1,0 +1,223 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "hariku-df"
+		},
+		"LS_MSSQL_NextGen_Parameterized_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_MSSQL_NextGen_Parameterized'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().LS_SQLServerName};Initial Catalog=@{linkedService().LS_SQLDBName};User ID=@{linkedService().LS_SQLUserName}"
+		},
+		"LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADLS2Url"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADLSStore"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_AzureTenant"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_AzureSubscriptionID"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ResourceGroup"
+		},
+		"LS_Common_AKV_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://shell-32-eun-kv-jijuhmbg.vault.azure.net/"
+		},
+		"LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADB_Cluster_Id"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 5
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS2_NextGen_Parameterized')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"LS_ADLS2Url": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_NextGen_Parameterized')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"LS_ADLSStore": {
+						"type": "String"
+					},
+					"LS_AzureTenant": {
+						"type": "String"
+					},
+					"LS_AzureSubscriptionID": {
+						"type": "String"
+					},
+					"LS_ResourceGroup": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureDataLakeStore",
+				"typeProperties": {
+					"dataLakeStoreUri": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri')]",
+					"tenant": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant')]",
+					"subscriptionId": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_Common_AKV')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Common and Parameterized Linked Service for Keyvault.\nPass the Keyvault URL as the parameter.\nVersion: 1.01",
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LS_Common_AKV_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADB_NextGen_Parameterized')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"LS_ADB_WS_URL": {
+						"type": "string"
+					},
+					"LS_ADB_Secret_Name": {
+						"type": "string"
+					},
+					"LS_ADB_Cluster_Id": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "@linkedService().LS_ADB_WS_URL",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_Common_AKV",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "@linkedService().LS_ADB_Secret_Name",
+							"type": "Expression"
+						}
+					},
+					"existingClusterId": "[parameters('LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Common_AKV')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_MSSQL_NextGen_Parameterized')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"LS_SQLServerName": {
+						"type": "string"
+					},
+					"LS_SQLDBName": {
+						"type": "string"
+					},
+					"LS_SQLUserName": {
+						"type": "string"
+					},
+					"LS_SQLUserSecretName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_MSSQL_NextGen_Parameterized_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_Common_AKV",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": {
+							"value": "@linkedService().LS_SQLUserSecretName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_Common_AKV')]"
+			]
+		}
+	]
+}

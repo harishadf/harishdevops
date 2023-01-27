@@ -1,0 +1,99 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "hariku-df"
+		},
+		"LS_MSSQL_NextGen_Parameterized_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_MSSQL_NextGen_Parameterized'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().LS_SQLServerName};Initial Catalog=@{linkedService().LS_SQLDBName};User ID=@{linkedService().LS_SQLUserName}"
+		},
+		"LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADB_Cluster_Id"
+		},
+		"LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADLS2Url"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ADLSStore"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_AzureTenant"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_AzureSubscriptionID"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "@linkedService().LS_ResourceGroup"
+		},
+		"LS_Common_AKV_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://shell-32-eun-kv-jijuhmbg.vault.azure.net/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "hariku-df_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LS_MSSQL_NextGen_Parameterized_connectionString": {
+						"value": "[parameters('LS_MSSQL_NextGen_Parameterized_connectionString')]"
+					},
+					"LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url": {
+						"value": "[parameters('LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url')]"
+					},
+					"LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri": {
+						"value": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri')]"
+					},
+					"LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant": {
+						"value": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant')]"
+					},
+					"LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId": {
+						"value": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId')]"
+					},
+					"LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName": {
+						"value": "[parameters('LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName')]"
+					},
+					"LS_Common_AKV_properties_typeProperties_baseUrl": {
+						"value": "[parameters('LS_Common_AKV_properties_typeProperties_baseUrl')]"
+					},
+					"LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

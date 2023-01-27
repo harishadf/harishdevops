@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "hariku-df"
+		},
+		"LS_MSSQL_NextGen_Parameterized_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().LS_SQLServerName};Initial Catalog=@{linkedService().LS_SQLDBName};User ID=@{linkedService().LS_SQLUserName}"
+		},
+		"LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId": {
+			"value": "@linkedService().LS_ADB_Cluster_Id"
+		},
+		"LS_ADLS2_NextGen_Parameterized_properties_typeProperties_url": {
+			"value": "@linkedService().LS_ADLS2Url"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_dataLakeStoreUri": {
+			"value": "@linkedService().LS_ADLSStore"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_tenant": {
+			"value": "@linkedService().LS_AzureTenant"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_subscriptionId": {
+			"value": "@linkedService().LS_AzureSubscriptionID"
+		},
+		"LS_ADLS_NextGen_Parameterized_properties_typeProperties_resourceGroupName": {
+			"value": "@linkedService().LS_ResourceGroup"
+		},
+		"LS_Common_AKV_properties_typeProperties_baseUrl": {
+			"value": "https://shell-32-eun-kv-jijuhmbg.vault.azure.net/"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
