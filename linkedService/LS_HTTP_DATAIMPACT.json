@@ -1,0 +1,12 @@
+{
+	"name": "LS_HTTP_DATAIMPACT",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://api.dataimpact.io",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
