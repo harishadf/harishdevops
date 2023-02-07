@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "hariku-df"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
 		"LS_MSSQL_NextGen_Parameterized_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().LS_SQLServerName};Initial Catalog=@{linkedService().LS_SQLDBName};User ID=@{linkedService().LS_SQLUserName}"
 		},
@@ -28,6 +31,9 @@
 		},
 		"LS_Common_AKV_properties_typeProperties_baseUrl": {
 			"value": "https://shell-32-eun-kv-jijuhmbg.vault.azure.net/"
+		},
+		"LS_HTTP_DATAIMPACT_properties_typeProperties_url": {
+			"value": "https://api.dataimpact.io"
 		}
 	}
 }

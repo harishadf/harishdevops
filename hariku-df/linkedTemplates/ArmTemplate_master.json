@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "hariku-df"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
 		"LS_MSSQL_NextGen_Parameterized_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_MSSQL_NextGen_Parameterized'",
@@ -40,6 +44,10 @@
 			"type": "string",
 			"defaultValue": "https://shell-32-eun-kv-jijuhmbg.vault.azure.net/"
 		},
+		"LS_HTTP_DATAIMPACT_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://api.dataimpact.io"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -67,6 +75,9 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"AzureBlobStorage1_connectionString": {
+						"value": "[parameters('AzureBlobStorage1_connectionString')]"
+					},
 					"LS_MSSQL_NextGen_Parameterized_connectionString": {
 						"value": "[parameters('LS_MSSQL_NextGen_Parameterized_connectionString')]"
 					},
@@ -87,6 +98,9 @@
 					},
 					"LS_Common_AKV_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS_Common_AKV_properties_typeProperties_baseUrl')]"
+					},
+					"LS_HTTP_DATAIMPACT_properties_typeProperties_url": {
+						"value": "[parameters('LS_HTTP_DATAIMPACT_properties_typeProperties_url')]"
 					},
 					"LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId": {
 						"value": "[parameters('LS_ADB_NextGen_Parameterized_properties_typeProperties_existingClusterId')]"
